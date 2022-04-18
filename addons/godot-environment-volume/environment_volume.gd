@@ -3,7 +3,7 @@
 # Contains each environment volume itself, which indicates what environment to apply
 # to cameras that enter its bounds.
 tool
-class_name EnvironmentVolume
+class_name EnvironmentVolume, "environment_volume.svg"
 extends Spatial
 
 

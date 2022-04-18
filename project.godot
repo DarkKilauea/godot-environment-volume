@@ -15,7 +15,7 @@ _global_script_classes=[ {
 "path": "res://addons/godot-environment-volume/environment_volume.gd"
 } ]
 _global_script_class_icons={
-"EnvironmentVolume": ""
+"EnvironmentVolume": "res://addons/godot-environment-volume/environment_volume.svg"
 }
 
 [application]
