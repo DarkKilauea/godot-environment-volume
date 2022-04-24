@@ -20,7 +20,7 @@ This repository contains the add-on and development resources.  The main scene i
 - Navigate to the **AssetLib** tab at the top of the editor and search for
   "Environment Volume".
 - Install the
-  [*Environment Volume*](https://godotengine.org/asset-library/asset/ASSETLIB_ID)
+  [*Environment Volume*](https://godotengine.org/asset-library/asset/1311)
   plugin. Keep all files checked during installation.
 - In the editor, open **Project > Project Settings**, go to **Plugins**
   and enable the **Environment Volume** plugin.
