@@ -5,72 +5,85 @@ tool
 extends Node
 
 
-# Information about cameras we are affecting so we can restore them later.
-var affected_cameras := {};
+# Set of cameras and the environments with their weights that we are blending.
+# Format: { camera: { environment: weight } }
+var camera_blended_environments := {};
 
-# Set of EnvironmentVolumes that we are tracking.
-var volumes := [];
+# Cache for the generated environments for each camera.
+# This reduces the cost of creating the environments per frame.
+# Format: { camera: environment }
+var camera_environment_cache := {};
+
+# The original environment for each camera so we can restore their state.
+# Format: { camera: environment }
+var camera_original_environments := {};
 
 
 func _process(delta: float) -> void:
-	# For each camera we are tracking
-	for _camera in _find_cameras():
+	for _camera in camera_blended_environments:
 		var camera: Camera = _camera;
-		if !camera:
-			continue;
+		var world := camera.get_world();
 		
-		# Figure out which volumes the camera is within
-		var intersecting_volumes := [];
-		for _volume in volumes:
-			var volume: EnvironmentVolume = _volume;
-			var bounds: AABB = volume.global_transform.xform(volume.bounds);
+		# Default default environment to use as a base for blending
+		var base_env: Environment = world.environment;
+		if !base_env:
+			base_env = world.fallback_environment;
+		
+		if !base_env:
+			base_env = Environment.new();
+		
+		# Loop over each environment and blend them.
+		var environments: Dictionary = camera_blended_environments[camera];
+		for _env in environments.keys():
+			var environment: Environment = _env;
+			var weight: float = environments[environment];
 			
-			if bounds.has_point(camera.global_transform.origin):
-				intersecting_volumes.append(volume);
+			base_env = _environment_lerp(base_env, environment, weight);
 		
-		# If this camera isn't currently being affected, and it intersects a volume, save its existing settings.
-		if !affected_cameras.has(camera) && !intersecting_volumes.empty():
-			affected_cameras[camera] = camera.environment;
+		camera.environment = base_env;
+
+
+# Update the environment for a camera, blending with other requests by a weight.
+# @param camera Camera to update the environment for.
+# @param environment Desired environment settings at full weight.
+# @param weight Strength of the provided environment when blending.  0.0 has no effect and 1.0 has full effect.
+func update_environment_for_camera(camera: Camera, environment: Environment, weight: float) -> void:
+	var env_set: Dictionary;
+	if camera_blended_environments.has(camera):
+		env_set = camera_blended_environments[camera];
+	else:
+		env_set = Dictionary();
+		camera_blended_environments[camera] = env_set;
 		
-		# Update the environment for cameras that are currently being affected.
-		for _volume in intersecting_volumes:
-			var volume: EnvironmentVolume = _volume;
-			
-			# TODO: Sort volumes by priority if they overlap?
-			# TODO: Blend between volumes that overlap?
-			camera.environment = volume.environment;
+		camera_original_environments[camera] = camera.environment;
+		camera_environment_cache[camera] = _build_default_environment();
+		print_debug("Add camera: %s env: %s weight: %s" % [ camera, environment, weight ]);
+	
+	env_set[environment] = weight;
+
+
+# Remove a previous request to blend environments for a camera.
+# If no requests remain for that camera, it will revert to its original settings.
+func remove_environment_for_camera(camera: Camera, environment: Environment) -> void:
+	if !camera_blended_environments.has(camera):
+		push_warning("Could not find camera %s to remove" % camera);
+	
+	var env_set: Dictionary = camera_blended_environments[camera];
+	env_set.erase(environment);
+	
+	if env_set.empty():
+		camera.environment = camera_original_environments[camera];
 		
-		# Restore cameras that just left all of our volumes back to their original settings.
-		if affected_cameras.has(camera) && intersecting_volumes.empty():
-			var original_env: Environment = affected_cameras[camera];
-			camera.environment = original_env;
-			affected_cameras.erase(camera);
+		camera_original_environments.erase(camera);
+		camera_blended_environments.erase(camera);
+		camera_environment_cache.erase(camera);
+		
+		print_debug("Remove camera: %s env: %s" % [ camera, environment ]);
 
 
-# Register a new environment volume for this manager to track.
-func register_environment_volume(volume: EnvironmentVolume) -> void:
-	if volumes.has(volume):
-		push_warning("EnvironmentVolume %s already registered." % volume);
-		return;
-	
-	volumes.append(volume);
+func _build_default_environment() -> Environment:
+	return Environment.new();
 
 
-# Remove an environment volume that was previously being tracked.
-func unregister_environment_volume(volume: EnvironmentVolume) -> void:
-	if !volumes.has(volume):
-		push_warning("EnvironmentVolume %s is not registered, cannot remove." % volume);
-		return;
-	
-	volumes.erase(volume);
-
-
-func _find_cameras() -> Array:
-	# Pull all cameras the user has marked to be affected
-	var cameras := get_tree().get_nodes_in_group("EnvironmentVolumeCameras");
-	
-	# Fallback to grabbing the active camera in the root viewport.
-	if cameras.empty():
-		return [ get_viewport().get_camera() ];
-	
-	return cameras;
+func _environment_lerp(source: Environment, dest: Environment, blend_weight: float) -> Environment:
+	return dest;

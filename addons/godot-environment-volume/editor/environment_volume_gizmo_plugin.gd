@@ -38,7 +38,7 @@ func redraw(gizmo: EditorSpatialGizmo) -> void:
 	gizmo.clear();
 	
 	var lines := PoolVector3Array();
-	var aabb := volume.bounds;
+	var aabb := volume.local_bounds;
 	
 	for i in range(0, 12):
 		var pair := _aabb_get_edge(aabb, i);
