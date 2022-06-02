@@ -1,7 +1,8 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=25 format=2]
 
 [ext_resource path="res://addons/godot-environment-volume/environment_volume.gd" type="Script" id=1]
-[ext_resource path="res://fps_camera.gd" type="Script" id=3]
+[ext_resource path="res://fps_camera.tscn" type="PackedScene" id=2]
+[ext_resource path="res://platform.tscn" type="PackedScene" id=3]
 
 [sub_resource type="ProceduralSky" id=3]
 
@@ -21,25 +22,22 @@ size = Vector2( 20, 20 )
 [sub_resource type="BoxShape" id=2]
 extents = Vector3( 10, 1, 10 )
 
-[sub_resource type="CubeMesh" id=17]
-size = Vector3( 8, 0.1, 8 )
+[sub_resource type="SpatialMaterial" id=27]
+albedo_color = Color( 1, 0, 0, 1 )
 
-[sub_resource type="SpatialMaterial" id=18]
-albedo_color = Color( 1, 0.25098, 0.25098, 1 )
+[sub_resource type="Gradient" id=23]
+colors = PoolColorArray( 0, 0, 0, 1, 1, 0.25, 0.25, 1 )
 
-[sub_resource type="Gradient" id=6]
-colors = PoolColorArray( 0, 0, 0, 1, 1, 0.5, 0.5, 1 )
+[sub_resource type="GradientTexture" id=24]
+gradient = SubResource( 23 )
 
-[sub_resource type="GradientTexture" id=11]
-gradient = SubResource( 6 )
+[sub_resource type="ProceduralSky" id=25]
 
-[sub_resource type="ProceduralSky" id=9]
-
-[sub_resource type="Environment" id=8]
+[sub_resource type="Environment" id=26]
 background_mode = 2
-background_sky = SubResource( 9 )
+background_sky = SubResource( 25 )
 adjustment_enabled = true
-adjustment_color_correction = SubResource( 11 )
+adjustment_color_correction = SubResource( 24 )
 
 [sub_resource type="CubeMesh" id=19]
 size = Vector3( 8, 0.1, 8 )
@@ -52,6 +50,8 @@ colors = PoolColorArray( 0, 0, 0, 1, 0.503906, 1, 0.5, 1 )
 
 [sub_resource type="GradientTexture" id=7]
 gradient = SubResource( 12 )
+
+[sub_resource type="ProceduralSky" id=9]
 
 [sub_resource type="Environment" id=13]
 background_mode = 2
@@ -80,11 +80,8 @@ adjustment_color_correction = SubResource( 14 )
 [node name="WorldEnvironment" type="WorldEnvironment"]
 environment = SubResource( 4 )
 
-[node name="FPSCamera" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.90871, 2, 6 )
-script = ExtResource( 3 )
-
-[node name="Camera" type="Camera" parent="FPSCamera"]
+[node name="FPSCamera" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, 3 )
 
 [node name="StaticBody" type="StaticBody" parent="."]
 
@@ -97,16 +94,11 @@ material/0 = null
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0 )
 shape = SubResource( 2 )
 
-[node name="RedPlatform" type="MeshInstance" parent="StaticBody"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.13298, 0.1, -5.94632 )
-mesh = SubResource( 17 )
-material/0 = SubResource( 18 )
+[node name="RedPlatform" parent="StaticBody" instance=ExtResource( 3 )]
+material/0 = SubResource( 27 )
 
-[node name="RedEnvironmentVolume" type="Spatial" parent="StaticBody/RedPlatform"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0 )
-script = ExtResource( 1 )
-extents = Vector3( 4, 4, 4 )
-environment = SubResource( 8 )
+[node name="EnvironmentVolume" parent="StaticBody/RedPlatform" index="0"]
+environment = SubResource( 26 )
 
 [node name="GreenPlatform" type="MeshInstance" parent="StaticBody"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.86702, 0.1, -5.94632 )
@@ -131,3 +123,5 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0 )
 script = ExtResource( 1 )
 extents = Vector3( 4, 4, 4 )
 environment = SubResource( 16 )
+
+[editable path="StaticBody/RedPlatform"]
