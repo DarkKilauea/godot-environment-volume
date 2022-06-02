@@ -202,88 +202,17 @@ func _weighted_average_basis(objects: Dictionary, property: String) -> Basis:
 	);
 
 
-func _blend_gradient(environments: Dictionary, property: String, dest_environment: Environment) -> void:
-	#var gradient := ;
-	pass;
-
-
-func _blend_texture(environments: Dictionary, property: String, dest_environment: Environment) -> void:
-	var texture_type := _get_highest_weight_class(environments, property);
-	if !texture_type:
-		# Could not determine the type (usually because the value is null), assign null and bail.
-		dest_environment.set_indexed(property, null);
-		return;
-	
-	var dest_texture = dest_environment.get_indexed(property);
-	if !dest_texture or dest_texture.get_class() != texture_type:
-		match texture_type:
-			"GradientTexture":
-				dest_texture = GradientTexture.new();
-				dest_environment.set_indexed(property, dest_texture);
-	
-	match texture_type:
-		_:
-			# Unknown type, fallback to assigning the instance with the greatest weight.
-			dest_texture = _get_highest_weight_value(environments, property);
-			dest_environment.set_indexed(property, dest_texture);
-
-func _blend_background_sky(environments: Dictionary, dest_environment: Environment) -> void:
-	# Figure out the type of sky that has the highest weight.
-	var sky_type := _get_highest_weight_class(environments, "background_sky");
-	if !sky_type:
-		# Could not determine the type (usually because the value is null), assign null and bail.
-		dest_environment.background_sky = null;
-		return;
-	
-	# Create a new instance of the sky if the type changed from the last frame.
-	if !dest_environment.background_sky or dest_environment.background_sky.get_class() != sky_type:
-		match sky_type:
-			"PanoramaSky":
-				dest_environment.background_sky = PanoramaSky.new();
-			"ProceduralSky":
-				dest_environment.background_sky = ProceduralSky.new();
-	
-	# Update the sky's parameters
-	match sky_type:
-		"PanoramaSky":
-			var panorama_sky := dest_environment.background_sky as PanoramaSky;
-			_blend_texture(environments, "background_sky:panorama", dest_environment);
-			panorama_sky.radiance_size = _get_highest_weight_value(environments, "background_sky:radiance_size");
-		"ProceduralSky":
-			var procedural_sky := dest_environment.background_sky as ProceduralSky;
-			procedural_sky.sky_top_color = _weighted_average_color(environments, "background_sky:sky_top_color");
-			procedural_sky.sky_horizon_color = _weighted_average_color(environments, "background_sky:sky_horizon_color");
-			procedural_sky.sky_curve = _weighted_average_float(environments, "background_sky:sky_curve");
-			procedural_sky.sky_energy = _weighted_average_float(environments, "background_sky:sky_energy");
-			procedural_sky.ground_bottom_color = _weighted_average_color(environments, "background_sky:ground_bottom_color");
-			procedural_sky.ground_horizon_color = _weighted_average_color(environments, "background_sky:ground_horizon_color");
-			procedural_sky.ground_curve = _weighted_average_float(environments, "background_sky:ground_curve");
-			procedural_sky.ground_energy = _weighted_average_float(environments, "background_sky:ground_energy");
-			procedural_sky.sun_color = _weighted_average_color(environments, "background_sky:sun_color");
-			procedural_sky.sun_latitude = _weighted_average_float(environments, "background_sky:sun_latitude");
-			procedural_sky.sun_longitude = _weighted_average_float(environments, "background_sky:sun_longitude");
-			procedural_sky.sun_angle_min = _weighted_average_float(environments, "background_sky:sun_angle_min");
-			procedural_sky.sun_angle_max = _weighted_average_float(environments, "background_sky:sun_angle_max");
-			procedural_sky.sun_curve = _weighted_average_float(environments, "background_sky:sun_curve");
-			procedural_sky.sun_energy = _weighted_average_float(environments, "background_sky:sun_energy");
-			procedural_sky.texture_size = _get_highest_weight_value(environments, "background_sky:texture_size");
-			procedural_sky.radiance_size = _get_highest_weight_value(environments, "background_sky:radiance_size");
-		_:
-			# Unknown type, fallback to assigning the instance with the greatest weight.
-			dest_environment.background_sky = _get_highest_weight_value(environments, "background_sky");
-
-
 func _blend_environments(environments: Dictionary, dest_environment: Environment) -> void:
 	# Background
 	dest_environment.background_mode = _get_highest_weight_value(environments, "background_mode");
 	match dest_environment.background_mode:
 		Environment.BG_SKY:
-			_blend_background_sky(environments, dest_environment);
+			dest_environment.background_sky = _get_highest_weight_value(environments, "background_sky");
 			dest_environment.background_sky_custom_fov = _weighted_average_float(environments, "background_sky_custom_fov");
 			dest_environment.background_sky_orientation = _weighted_average_basis(environments, "background_sky_orientation");
 		Environment.BG_COLOR_SKY:
 			dest_environment.background_color = _weighted_average_color(environments, "background_color");
-			_blend_background_sky(environments, dest_environment);
+			dest_environment.background_sky = _get_highest_weight_value(environments, "background_sky");
 			dest_environment.background_sky_custom_fov = _weighted_average_float(environments, "background_sky_custom_fov");
 			dest_environment.background_sky_orientation = _weighted_average_basis(environments, "background_sky_orientation");
 		Environment.BG_COLOR:
@@ -398,4 +327,4 @@ func _blend_environments(environments: Dictionary, dest_environment: Environment
 		dest_environment.adjustment_brightness = _weighted_average_float(environments, "adjustment_brightness");
 		dest_environment.adjustment_contrast = _weighted_average_float(environments, "adjustment_contrast");
 		dest_environment.adjustment_saturation = _weighted_average_float(environments, "adjustment_saturation");
-		_blend_texture(environments, "adjustment_color_correction", dest_environment); 
+		dest_environment.adjustment_color_correction = _get_highest_weight_value(environments, "adjustment_color_correction");
