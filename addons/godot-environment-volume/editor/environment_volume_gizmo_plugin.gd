@@ -14,7 +14,7 @@ func _init(p_undo_redo: UndoRedo) -> void:
 	var gizmo_color := Color(0.5, 0.6, 1.0);
 	create_material("material", gizmo_color);
 	
-	gizmo_color.a = 0.1;
+	gizmo_color.a = 0.5;
 	create_material("material_internal", gizmo_color);
 	
 	# TODO: create_icon_material
@@ -37,19 +37,29 @@ func redraw(gizmo: EditorSpatialGizmo) -> void:
 	
 	gizmo.clear();
 	
-	var lines := PoolVector3Array();
-	var aabb := volume.local_bounds;
+	var inner_lines := PoolVector3Array();
+	var inner_aabb := volume.inner_bounds;
 	
 	for i in range(0, 12):
-		var pair := _aabb_get_edge(aabb, i);
-		lines.append_array(pair);
+		var pair := _aabb_get_edge(inner_aabb, i);
+		inner_lines.append_array(pair);
 	
-	gizmo.add_lines(lines, material);
+	gizmo.add_lines(inner_lines, material);
+
+	if !is_zero_approx(volume.blend_distance):
+		var outer_aabb := volume.outer_bounds;
+		var outer_lines := PoolVector3Array();
+
+		for i in range(0, 12):
+			var pair := _aabb_get_edge(outer_aabb, i);
+			outer_lines.append_array(pair);
+		
+		gizmo.add_lines(outer_lines, material_internal);
 	
 	var handles := PoolVector3Array();
 	for i in range(0, 3):
 		var handle_pos := Vector3();
-		handle_pos[i] = aabb.position[i] + aabb.size[i];
+		handle_pos[i] = inner_aabb.position[i] + inner_aabb.size[i];
 		handles.append(handle_pos);
 	
 	gizmo.add_handles(handles, material_handles);

@@ -99,6 +99,8 @@ material/0 = SubResource( 27 )
 
 [node name="EnvironmentVolume" parent="StaticBody/RedPlatform" index="0"]
 environment = SubResource( 26 )
+blend_time = 0.0
+blend_distance = 0.0
 
 [node name="GreenPlatform" type="MeshInstance" parent="StaticBody"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.86702, 0.1, -5.94632 )
@@ -111,6 +113,8 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0 )
 script = ExtResource( 1 )
 extents = Vector3( 4, 4, 4 )
 environment = SubResource( 13 )
+blend_time = 0.0
+blend_distance = 0.0
 
 [node name="BluePlatform" type="MeshInstance" parent="StaticBody"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.86702, 0.1, 2.05368 )
@@ -123,5 +127,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0 )
 script = ExtResource( 1 )
 extents = Vector3( 4, 4, 4 )
 environment = SubResource( 16 )
+blend_time = 0.0
+blend_distance = 0.0
 
 [editable path="StaticBody/RedPlatform"]
