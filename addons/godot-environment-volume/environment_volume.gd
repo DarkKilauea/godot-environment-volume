@@ -2,88 +2,50 @@
 # See `LICENSE.md` included in the source distribution for details.
 # Contains each environment volume itself, which indicates what environment to apply
 # to cameras that enter its bounds.
-tool
-class_name EnvironmentVolume, "environment_volume.svg"
-extends Spatial
+@tool
+@icon("environment_volume.svg")
+class_name EnvironmentVolume
+extends Node3D
 
+@export_category("EnvironmentVolume")
 
-# Size of the cuboid region this volume controls
-var extents: Vector3 = Vector3(1, 1, 1) setget _set_extents;
+## Size of the cuboid region this volume controls
+@export var size: Vector3 = Vector3(1, 1, 1): set = _set_extents
 
-# Environment to apply to cameras that enter this volume
-var environment: Environment setget _set_environment;
+## Environment to apply to cameras that enter this volume
+@export var environment: Environment: set = _set_environment
 
-# Time in seconds to blend to target strength.
-# Target strength is controlled by blend_distance, allowing both to be mixed.
-var blend_time: float = 0.0 setget _set_blend_time;
+@export_group("Blend", "blend_")
 
-# Distance from the edge of the volume to start blending.
-# Strength will linearly increase as the camera approaches the volume's edge.
-var blend_distance: float = 0.0 setget _set_blend_distance;
+## Time in seconds to blend to target strength.
+## Target strength is controlled by blend_distance, allowing both to be mixed.
+@export_range(0, 4, 0.1, "or_greater") var blend_time: float = 0.0: set = _set_blend_time
 
-# Calculated bounding box for this region's effect, in local coordinates.
-# Within these bounds, the effect will be at full strength.
+## Distance from the edge of the volume to start blending.
+## Strength will linearly increase as the camera approaches the volume's edge.
+@export_range(0, 4, 0.1, "or_greater") var blend_distance: float = 0.0: set = _set_blend_distance
+
+## Calculated bounding box for this region's effect, in local coordinates.
+## Within these bounds, the effect will be at full strength.
 var inner_bounds := AABB();
 
-# Calculated outer bounding box for this region's effect, in local coordinates.
-# This is where the effect will start blending in from.
+## Calculated outer bounding box for this region's effect, in local coordinates.
+## This is where the effect will start blending in from.
 var outer_bounds := AABB();
 
-# Cameras being updated by this volume.
-# Format: { camera, current_blend_strength: float }
+## Cameras being updated by this volume.
+## Format: { camera, current_blend_strength: float }
 var _affected_cameras := {};
 
 
-func _get_property_list() -> Array:
-	return [
-		{
-			"name": "EnvironmentVolume",
-			"type": TYPE_NIL,
-			"usage": PROPERTY_USAGE_CATEGORY
-		},
-		{
-			"name": "extents",
-			"type": TYPE_VECTOR3,
-			"usage": PROPERTY_USAGE_DEFAULT
-		},
-		{
-			"name": "environment",
-			"type": TYPE_OBJECT,
-			"usage": PROPERTY_USAGE_DEFAULT,
-			"hint": PROPERTY_HINT_RESOURCE_TYPE,
-			"hint_string": "Environment"
-		},
-		{
-			"name": "Blend",
-			"type": TYPE_NIL,
-			"usage": PROPERTY_USAGE_GROUP,
-			"hint_string": "blend_"
-		},
-		{
-			"name": "blend_time",
-			"type": TYPE_REAL,
-			"usage": PROPERTY_USAGE_DEFAULT,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "0,4,0.1,or_greater"
-		},
-		{
-			"name": "blend_distance",
-			"type": TYPE_REAL,
-			"usage": PROPERTY_USAGE_DEFAULT,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "0,4,0.1,or_greater"
-		}
-	]
-
-
 func _process(delta: float) -> void:
-	var global_outer_bounds: AABB = global_transform.xform(outer_bounds);
-	var global_inner_bounds: AABB = global_transform.xform(inner_bounds);
+	var global_outer_bounds: AABB = global_transform * (outer_bounds);
+	var global_inner_bounds: AABB = global_transform * (inner_bounds);
 	
 	# For each camera we are tracking
 	var cameras: Array = _find_cameras();
 	for _camera in cameras:
-		var camera: Camera = _camera;
+		var camera: Camera3D = _camera;
 		var camera_pos := camera.global_transform.origin;
 		
 		# This prevents errors in the editor...
@@ -130,7 +92,7 @@ func _process(delta: float) -> void:
 	
 	# Safety check for cameras that were taken out of the group or are no longer active.
 	for _camera in _affected_cameras.keys():
-		var camera: Camera = _camera;
+		var camera: Camera3D = _camera;
 		
 		# Skip if we already processed this camera.
 		if cameras.has(camera):
@@ -163,15 +125,15 @@ func _set_environment(new_environment: Environment) -> void:
 
 
 func _set_extents(new_extents: Vector3) -> void:
-	if extents == new_extents:
+	if size == new_extents:
 		return;
 	
-	extents = new_extents;
+	size = new_extents;
 	
 	_update_bounds();
 	
-	property_list_changed_notify();
-	update_gizmo();
+	notify_property_list_changed();
+	update_gizmos();
 
 
 func _set_blend_time(new_blend_time: float) -> void:
@@ -188,11 +150,11 @@ func _set_blend_distance(new_blend_distance: float) -> void:
 	blend_distance = new_blend_distance;
 	
 	_update_bounds();
-	update_gizmo();
+	update_gizmos();
 
 
 func _update_bounds():
-	inner_bounds = AABB(-extents, extents * 2);
+	inner_bounds = AABB(-size, size * 2);
 	outer_bounds = inner_bounds.grow(blend_distance);
 
 
@@ -201,8 +163,8 @@ func _find_cameras() -> Array:
 	var cameras := get_tree().get_nodes_in_group("EnvironmentVolumeCameras");
 	
 	# Fallback to grabbing the active camera in the root viewport.
-	if cameras.empty():
-		return [ get_viewport().get_camera() ];
+	if cameras.is_empty():
+		return [ get_viewport().get_camera_3d() ];
 	
 	return cameras;
 

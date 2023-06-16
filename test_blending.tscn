@@ -1,67 +1,85 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=15 format=3 uid="uid://cdfh5eorv25st"]
 
-[ext_resource path="res://fps_camera.tscn" type="PackedScene" id=1]
-[ext_resource path="res://platform.tscn" type="PackedScene" id=2]
+[ext_resource type="PackedScene" path="res://fps_camera.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://platform.tscn" id="2"]
 
-[sub_resource type="SpatialMaterial" id=3]
-albedo_color = Color( 0.454902, 0.454902, 0.454902, 1 )
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rckhl"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
 
-[sub_resource type="CubeMesh" id=1]
-material = SubResource( 3 )
-size = Vector3( 40, 0.5, 20 )
+[sub_resource type="Sky" id="Sky_ocs53"]
+sky_material = SubResource("ProceduralSkyMaterial_rckhl")
 
-[sub_resource type="BoxShape" id=2]
-extents = Vector3( 20, 0.25, 10 )
-
-[sub_resource type="ProceduralSky" id=4]
-
-[sub_resource type="Environment" id=5]
+[sub_resource type="Environment" id="Environment_p2pbp"]
 background_mode = 2
-background_sky = SubResource( 4 )
-fog_depth_enabled = false
-fog_height_enabled = true
+sky = SubResource("Sky_ocs53")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="3"]
+albedo_color = Color(0.454902, 0.454902, 0.454902, 1)
+
+[sub_resource type="BoxMesh" id="1"]
+material = SubResource("3")
+size = Vector3(40, 0.5, 20)
+
+[sub_resource type="BoxShape3D" id="2"]
+size = Vector3(20, 0.25, 10)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_d1doc"]
+
+[sub_resource type="Sky" id="4"]
+sky_material = SubResource("ProceduralSkyMaterial_d1doc")
+
+[sub_resource type="Environment" id="5"]
+background_mode = 2
+sky = SubResource("4")
 adjustment_enabled = true
 adjustment_brightness = 3.0
 
-[sub_resource type="ProceduralSky" id=6]
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_vuy8s"]
 
-[sub_resource type="Environment" id=7]
+[sub_resource type="Sky" id="6"]
+sky_material = SubResource("ProceduralSkyMaterial_vuy8s")
+
+[sub_resource type="Environment" id="7"]
 background_mode = 2
-background_sky = SubResource( 6 )
-dof_blur_far_enabled = true
-dof_blur_far_distance = 1.0
-dof_blur_far_amount = 0.2
+sky = SubResource("6")
 
-[node name="World" type="Spatial"]
+[node name="World" type="Node3D"]
 
-[node name="FPSCamera" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 6 )
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_p2pbp")
 
-[node name="StaticBody" type="StaticBody" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
 
-[node name="MeshInstance" type="MeshInstance" parent="StaticBody"]
-mesh = SubResource( 1 )
+[node name="FPSCamera" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 6)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+mesh = SubResource("1")
 skeleton = NodePath("../..")
-material/0 = null
 
-[node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
-shape = SubResource( 2 )
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("2")
 
-[node name="BlendDistancePlatform" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.25, -6 )
+[node name="BlendDistancePlatform" parent="." instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.25, -6)
 
 [node name="EnvironmentVolume" parent="BlendDistancePlatform" index="0"]
-environment = SubResource( 5 )
-blend_time = 0.0
+environment = SubResource("5")
 blend_distance = 2.0
 
-[node name="BlendTimePlatform" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.25, -6 )
+[node name="BlendTimePlatform" parent="." instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.25, -6)
 
 [node name="EnvironmentVolume" parent="BlendTimePlatform" index="0"]
-environment = SubResource( 7 )
+environment = SubResource("7")
 blend_time = 1.0
-blend_distance = 0.0
 
 [editable path="BlendDistancePlatform"]
 [editable path="BlendTimePlatform"]

@@ -1,9 +1,9 @@
-extends Spatial
+extends Node3D
 
-export (float, 0, 1, 0.01) var mouse_sensitivity = 0.05
-export (float, 0, 20, 0.5) var move_speed := 8.0
+@export_range(0, 1, 0.01) var mouse_sensitivity = 0.05
+@export_range(0, 20, 0.5) var move_speed := 8.0
 
-onready var camera: Camera = $Camera as Camera;
+@onready var camera: Camera3D = $Camera3D as Camera3D;
 
 
 func _enter_tree() -> void:
@@ -17,11 +17,11 @@ func _exit_tree() -> void:
 func _input(event: InputEvent) -> void:
 	# Mouse look (effective only if the mouse is captured)
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		camera.rotate_x(deg2rad(-event.relative.y * mouse_sensitivity))
-		self.rotate_y(deg2rad(-event.relative.x * mouse_sensitivity))
+		camera.rotate_x(deg_to_rad(-event.relative.y * mouse_sensitivity))
+		self.rotate_y(deg_to_rad(-event.relative.x * mouse_sensitivity))
 		
 		var camera_rot = camera.rotation;
-		camera_rot.x = clamp(camera_rot.x, deg2rad(-80), deg2rad(80))
+		camera_rot.x = clamp(camera_rot.x, deg_to_rad(-80), deg_to_rad(80))
 		camera.rotation = camera_rot;
 	
 	# Toggle mouse capture (only while the menu is not visible)
@@ -45,11 +45,11 @@ func _process(delta: float) -> void:
 	if Input.is_action_pressed("move_forward"):
 		input_vector += Vector3.FORWARD;
 	
-	input_vector = cam_xform.basis.xform(input_vector);
+	input_vector = cam_xform.basis * (input_vector);
 	input_vector = input_vector.normalized()
 	
 	if Input.is_action_pressed("move_sprint"):
 		input_vector *= 2
 	
-	translation += input_vector * move_speed * delta
+	position += input_vector * move_speed * delta
 

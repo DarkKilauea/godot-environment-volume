@@ -1,14 +1,14 @@
+@tool
 # Copyright © 2022 Josh Jones - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 # Contains the editor gizmo for the environment region
-tool
-extends EditorSpatialGizmoPlugin
+extends EditorNode3DGizmoPlugin
 
 # Used to allow undo/redo of changes made via gizmo
-var undo_redo: UndoRedo;
+var undo_redo: EditorUndoRedoManager;
 
 
-func _init(p_undo_redo: UndoRedo) -> void:
+func _init(p_undo_redo: EditorUndoRedoManager) -> void:
 	undo_redo = p_undo_redo;
 	
 	var gizmo_color := Color(0.5, 0.6, 1.0);
@@ -21,7 +21,7 @@ func _init(p_undo_redo: UndoRedo) -> void:
 	create_handle_material("handles");
 
 
-func has_gizmo(spatial: Spatial) -> bool:
+func has_gizmo(spatial: Node3D) -> bool:
 	return spatial is EnvironmentVolume;
 
 
@@ -29,15 +29,15 @@ func get_name() -> String:
 	return "EnvironmentVolume";
 
 
-func redraw(gizmo: EditorSpatialGizmo) -> void:
-	var volume := gizmo.get_spatial_node() as EnvironmentVolume;
+func redraw(gizmo: EditorNode3DGizmo) -> void:
+	var volume := gizmo.get_node_3d() as EnvironmentVolume;
 	var material := get_material("material", gizmo);
 	var material_internal := get_material("material_internal", gizmo);
 	var material_handles := get_material("handles", gizmo);
 	
 	gizmo.clear();
 	
-	var inner_lines := PoolVector3Array();
+	var inner_lines := PackedVector3Array();
 	var inner_aabb := volume.inner_bounds;
 	
 	for i in range(0, 12):
@@ -48,7 +48,7 @@ func redraw(gizmo: EditorSpatialGizmo) -> void:
 
 	if !is_zero_approx(volume.blend_distance):
 		var outer_aabb := volume.outer_bounds;
-		var outer_lines := PoolVector3Array();
+		var outer_lines := PackedVector3Array();
 
 		for i in range(0, 12):
 			var pair := _aabb_get_edge(outer_aabb, i);
@@ -56,16 +56,16 @@ func redraw(gizmo: EditorSpatialGizmo) -> void:
 		
 		gizmo.add_lines(outer_lines, material_internal);
 	
-	var handles := PoolVector3Array();
+	var handles := PackedVector3Array();
 	for i in range(0, 3):
 		var handle_pos := Vector3();
 		handle_pos[i] = inner_aabb.position[i] + inner_aabb.size[i];
 		handles.append(handle_pos);
 	
-	gizmo.add_handles(handles, material_handles);
+	gizmo.add_handles(handles, material_handles, []);
 
 
-func get_handle_name(gizmo: EditorSpatialGizmo, index: int) -> String:
+func _get_handle_name(gizmo: EditorNode3DGizmo, index: int, secondary: bool) -> String:
 	match index:
 		0:
 			return "Extents X";
@@ -77,52 +77,52 @@ func get_handle_name(gizmo: EditorSpatialGizmo, index: int) -> String:
 	return "";
 
 
-func get_handle_value(gizmo: EditorSpatialGizmo, index: int):
-	var volume := gizmo.get_spatial_node() as EnvironmentVolume;
-	return volume.extents;
+func _get_handle_value(gizmo: EditorNode3DGizmo, index: int, secondary: bool):
+	var volume := gizmo.get_node_3d() as EnvironmentVolume;
+	return volume.size;
 
 
-func set_handle(gizmo: EditorSpatialGizmo, index: int, camera: Camera, point: Vector2) -> void:
-	var volume := gizmo.get_spatial_node() as EnvironmentVolume;
+func set_handle(gizmo: EditorNode3DGizmo, index: int, camera: Camera3D, point: Vector2) -> void:
+	var volume := gizmo.get_node_3d() as EnvironmentVolume;
 	
 	var gt := volume.get_global_transform();
 	var gi := gt.affine_inverse();
 	
-	var extents = volume.extents;
+	var size = volume.size;
 	
 	var ray_from = camera.project_ray_origin(point);
 	var ray_dir = camera.project_ray_normal(point);
 	
-	var sg = [ gi.xform(ray_from), gi.xform(ray_from + ray_dir * camera.far) ];
+	var sg = [ gi * (ray_from), gi * (ray_from + ray_dir * camera.far) ];
 	
 	var axis = Vector3();
 	axis[index] = 1.0;
 	
-	var r := Geometry.get_closest_points_between_segments(Vector3(), axis * camera.far, sg[0], sg[1]);
+	var r := Geometry3D.get_closest_points_between_segments(Vector3(), axis * camera.far, sg[0], sg[1]);
 	var d := r[0][index];
 	
 	if (d < 0.001):
 		d = 0.001;
 	
-	extents[index] = d;
-	volume.extents = extents;
+	size[index] = d;
+	volume.size = size;
 
 
-func commit_handle(gizmo: EditorSpatialGizmo, index: int, restore, cancel: bool = false) -> void:
-	var volume := gizmo.get_spatial_node() as EnvironmentVolume;
+func _commit_handle(gizmo: EditorNode3DGizmo, index: int, secondary: bool, restore, cancel: bool = false) -> void:
+	var volume := gizmo.get_node_3d() as EnvironmentVolume;
 	
 	if cancel:
-		volume.extents = restore;
+		volume.size = restore;
 		return;
 	
 	undo_redo.create_action("Change Extents");
-	undo_redo.add_do_property(volume, "extents", volume.extents);
-	undo_redo.add_undo_property(volume, "extents", restore);
+	undo_redo.add_do_property(volume, "size", volume.size);
+	undo_redo.add_undo_property(volume, "size", restore);
 	undo_redo.commit_action();
 
 
 # Taken from core/math/aabb.cpp
-func _aabb_get_edge(aabb: AABB, var edge: int) -> Array:
+func _aabb_get_edge(aabb: AABB, edge: int) -> Array:
 	assert(edge >= 0);
 	assert(edge < 12);
 	

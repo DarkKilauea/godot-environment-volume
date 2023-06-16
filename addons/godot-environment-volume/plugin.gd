@@ -1,13 +1,13 @@
 # Copyright © 2022 Josh Jones and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
-tool
+@tool
 extends EditorPlugin
 
 
 const EnvironmentVolumeGizmoPlugin = preload("editor/environment_volume_gizmo_plugin.gd");
 
 
-var undo_redo: UndoRedo;
+var undo_redo: EditorUndoRedoManager;
 var gizmo_plugin: EnvironmentVolumeGizmoPlugin;
 
 
@@ -16,9 +16,9 @@ func _enter_tree() -> void:
 	gizmo_plugin = EnvironmentVolumeGizmoPlugin.new(undo_redo);
 	
 	add_autoload_singleton("EnvironmentBlender", "res://addons/godot-environment-volume/environment_blender.gd");
-	add_spatial_gizmo_plugin(gizmo_plugin);
+	add_node_3d_gizmo_plugin(gizmo_plugin);
 
 
 func _exit_tree() -> void:
-	remove_spatial_gizmo_plugin(gizmo_plugin);
+	remove_node_3d_gizmo_plugin(gizmo_plugin);
 	remove_autoload_singleton("EnvironmentBlender");

@@ -1,27 +1,27 @@
 # Copyright © 2022 Josh Jones - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 # Contains the central manager for handling the environment updates for all affected cameras.
-tool
+@tool
 extends Node
 
 
-# Set of cameras and the environments with their weights that we are blending.
-# Format: { camera: { environment: weight } }
+## Set of cameras and the environments with their weights that we are blending.
+## Format: { camera: { environment: weight } }
 var camera_blended_environments := {};
 
-# Cache for the generated environments for each camera.
-# This reduces the cost of creating the environments per frame.
-# Format: { camera: environment }
+## Cache for the generated environments for each camera.
+## This reduces the cost of creating the environments per frame.
+## Format: { camera: environment }
 var camera_environment_cache := {};
 
-# The original environment for each camera so we can restore their state.
-# Format: { camera: environment }
+## The original environment for each camera so we can restore their state.
+## Format: { camera: environment }
 var camera_original_environments := {};
 
 
 func _process(delta: float) -> void:
 	for _camera in camera_blended_environments:
-		var camera: Camera = _camera;
+		var camera: Camera3D = _camera;
 		var environments: Dictionary = camera_blended_environments[camera].duplicate();
 
 		# Check if total weights add up to at least one.
@@ -42,11 +42,11 @@ func _process(delta: float) -> void:
 		camera.environment = dest_env;
 
 
-# Update the environment for a camera, blending with other requests by a weight.
-# @param camera Camera to update the environment for.
-# @param environment Desired environment settings at full weight.
-# @param weight Strength of the provided environment when blending.  0.0 has no effect and 1.0 has full effect.
-func update_environment_for_camera(camera: Camera, environment: Environment, weight: float) -> void:
+## Update the environment for a camera, blending with other requests by a weight.
+## @param camera Camera to update the environment for.
+## @param environment Desired environment settings at full weight.
+## @param weight Strength of the provided environment when blending.  0.0 has no effect and 1.0 has full effect.
+func update_environment_for_camera(camera: Camera3D, environment: Environment, weight: float) -> void:
 	var env_set: Dictionary;
 	if camera_blended_environments.has(camera):
 		env_set = camera_blended_environments[camera];
@@ -60,16 +60,16 @@ func update_environment_for_camera(camera: Camera, environment: Environment, wei
 	env_set[environment] = weight;
 
 
-# Remove a previous request to blend environments for a camera.
-# If no requests remain for that camera, it will revert to its original settings.
-func remove_environment_for_camera(camera: Camera, environment: Environment) -> void:
+## Remove a previous request to blend environments for a camera.
+## If no requests remain for that camera, it will revert to its original settings.
+func remove_environment_for_camera(camera: Camera3D, environment: Environment) -> void:
 	if !camera_blended_environments.has(camera):
 		push_warning("Could not find camera %s to remove" % camera);
 	
 	var env_set: Dictionary = camera_blended_environments[camera];
 	env_set.erase(environment);
 	
-	if env_set.empty():
+	if env_set.is_empty():
 		camera.environment = camera_original_environments[camera];
 		
 		camera_original_environments.erase(camera);
@@ -77,13 +77,13 @@ func remove_environment_for_camera(camera: Camera, environment: Environment) -> 
 		camera_environment_cache.erase(camera);
 
 
-func _get_base_environment_for_camera(camera: Camera) -> Environment:
+func _get_base_environment_for_camera(camera: Camera3D) -> Environment:
 	# Check to see if the camera originally had an environment.
 	if camera_original_environments[camera]:
 		return camera_original_environments[camera];
 
 	# If not, check the world.
-	var world := camera.get_world();
+	var world := camera.get_world_3d();
 	if world.environment:
 		return world.environment;
 	
@@ -210,11 +210,6 @@ func _blend_environments(environments: Dictionary, dest_environment: Environment
 			dest_environment.background_sky = _get_highest_weight_value(environments, "background_sky");
 			dest_environment.background_sky_custom_fov = _weighted_average_float(environments, "background_sky_custom_fov");
 			dest_environment.background_sky_orientation = _weighted_average_basis(environments, "background_sky_orientation");
-		Environment.BG_COLOR_SKY:
-			dest_environment.background_color = _weighted_average_color(environments, "background_color");
-			dest_environment.background_sky = _get_highest_weight_value(environments, "background_sky");
-			dest_environment.background_sky_custom_fov = _weighted_average_float(environments, "background_sky_custom_fov");
-			dest_environment.background_sky_orientation = _weighted_average_basis(environments, "background_sky_orientation");
 		Environment.BG_COLOR:
 			dest_environment.background_color = _weighted_average_color(environments, "background_color");
 		Environment.BG_CANVAS:
@@ -267,12 +262,12 @@ func _blend_environments(environments: Dictionary, dest_environment: Environment
 		dest_environment.auto_exposure_speed = _weighted_average_float(environments, "auto_exposure_speed");
 
 	# SS Reflections
-	dest_environment.ss_reflections_enabled = _get_highest_weight_value(environments, "ss_reflections_enabled");
-	if dest_environment.ss_reflections_enabled:
-		dest_environment.ss_reflections_max_steps = _weighted_average_int(environments, "ss_reflections_max_steps");
-		dest_environment.ss_reflections_fade_in = _weighted_average_float(environments, "ss_reflections_fade_in");
-		dest_environment.ss_reflections_fade_out = _weighted_average_float(environments, "ss_reflections_fade_out");
-		dest_environment.ss_reflections_depth_tolerance = _weighted_average_float(environments, "ss_reflections_depth_tolerance");
+	dest_environment.ssr_enabled = _get_highest_weight_value(environments, "ssr_enabled");
+	if dest_environment.ssr_enabled:
+		dest_environment.ssr_max_steps = _weighted_average_int(environments, "ssr_max_steps");
+		dest_environment.ssr_fade_in = _weighted_average_float(environments, "ssr_fade_in");
+		dest_environment.ssr_fade_out = _weighted_average_float(environments, "ssr_fade_out");
+		dest_environment.ssr_depth_tolerance = _weighted_average_float(environments, "ssr_depth_tolerance");
 		dest_environment.ss_reflections_roughness = _get_highest_weight_value(environments, "ss_reflections_roughness");
 
 	# SSAO
