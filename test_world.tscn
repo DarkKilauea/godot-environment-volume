@@ -101,6 +101,8 @@ shape = SubResource("2")
 
 [node name="EnvironmentVolume" parent="StaticBody/RedPlatform" index="0"]
 environment = SubResource("26")
+inner_bounds = AABB(-4, -4, -4, 8, 8, 8)
+outer_bounds = AABB(-4, -4, -4, 8, 8, 8)
 
 [node name="GreenPlatform" type="MeshInstance3D" parent="StaticBody"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.86702, 0.1, -5.94632)
@@ -110,7 +112,10 @@ skeleton = NodePath("../RedPlatform")
 [node name="GreenEnvironmentVolume2" type="Node3D" parent="StaticBody/GreenPlatform"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 script = ExtResource("1")
+size = Vector3(4, 4, 4)
 environment = SubResource("13")
+inner_bounds = AABB(-4, -4, -4, 8, 8, 8)
+outer_bounds = AABB(-4, -4, -4, 8, 8, 8)
 
 [node name="BluePlatform" type="MeshInstance3D" parent="StaticBody"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.86702, 0.1, 2.05368)
@@ -120,6 +125,9 @@ skeleton = NodePath("../RedPlatform")
 [node name="BlueEnvironmentVolume3" type="Node3D" parent="StaticBody/BluePlatform"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 script = ExtResource("1")
+size = Vector3(4, 4, 4)
 environment = SubResource("16")
+inner_bounds = AABB(-4, -4, -4, 8, 8, 8)
+outer_bounds = AABB(-4, -4, -4, 8, 8, 8)
 
 [editable path="StaticBody/RedPlatform"]

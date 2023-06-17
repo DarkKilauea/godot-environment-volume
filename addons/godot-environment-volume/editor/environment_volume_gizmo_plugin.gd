@@ -21,15 +21,15 @@ func _init(p_undo_redo: EditorUndoRedoManager) -> void:
 	create_handle_material("handles");
 
 
-func has_gizmo(spatial: Node3D) -> bool:
+func _has_gizmo(spatial: Node3D) -> bool:
 	return spatial is EnvironmentVolume;
 
 
-func get_name() -> String:
+func _get_gizmo_name() -> String:
 	return "EnvironmentVolume";
 
 
-func redraw(gizmo: EditorNode3DGizmo) -> void:
+func _redraw(gizmo: EditorNode3DGizmo) -> void:
 	var volume := gizmo.get_node_3d() as EnvironmentVolume;
 	var material := get_material("material", gizmo);
 	var material_internal := get_material("material_internal", gizmo);
@@ -82,7 +82,7 @@ func _get_handle_value(gizmo: EditorNode3DGizmo, index: int, secondary: bool):
 	return volume.size;
 
 
-func set_handle(gizmo: EditorNode3DGizmo, index: int, camera: Camera3D, point: Vector2) -> void:
+func _set_handle(gizmo: EditorNode3DGizmo, index: int, secondary: bool, camera: Camera3D, point: Vector2) -> void:
 	var volume := gizmo.get_node_3d() as EnvironmentVolume;
 	
 	var gt := volume.get_global_transform();
