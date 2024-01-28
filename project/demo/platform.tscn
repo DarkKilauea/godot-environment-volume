@@ -1,16 +1,12 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=3 uid="uid://d16ejheh3fm0d"]
 
-[ext_resource path="res://addons/godot-environment-volume/environment_volume.gd" type="Script" id=1]
-
-[sub_resource type="BoxMesh" id=17]
-size = Vector3( 8, 0.1, 8 )
+[sub_resource type="BoxMesh" id="17"]
+size = Vector3(8, 0.1, 8)
 
 [node name="Platform" type="MeshInstance3D"]
-transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.13298, 0.1, -5.94632 )
-mesh = SubResource( 17 )
-material/0 = null
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.13298, 0.1, -5.94632)
+mesh = SubResource("17")
 
-[node name="EnvironmentVolume" type="Node3D" parent="."]
-transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0 )
-script = ExtResource( 1 )
-size = Vector3( 4, 4, 4 )
+[node name="EnvironmentVolume" type="EnvironmentVolume" parent="."]
+size = Vector3(4, 4, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)

@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://cdfh5eorv25st"]
 
-[ext_resource type="PackedScene" path="res://fps_camera.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://platform.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://hkwp73v42dl5" path="res://demo/fps_camera.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://d16ejheh3fm0d" path="res://demo/platform.tscn" id="2"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rckhl"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
