@@ -1,6 +1,8 @@
 # Objects.
 .scons-cache/
 *.os
+*.obj
+*.pdb
 
 # SConstruct
 .sconf_temp
