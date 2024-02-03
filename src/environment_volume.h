@@ -1,13 +1,12 @@
 #pragma once
 
+#include <godot_cpp/classes/camera3d.hpp>
 #include <godot_cpp/classes/environment.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 
 using namespace godot;
-
-class Camera3D;
 
 class EnvironmentVolume : public Node3D {
 	GDCLASS(EnvironmentVolume, Node3D);
@@ -22,12 +21,17 @@ class EnvironmentVolume : public Node3D {
 
 protected:
 	static void _bind_methods();
+	void _clear_cameras_from_blender();
+	void _update_cameras_in_blender();
+	void _update_bounds();
+	TypedArray<Camera3D> _find_cameras();
+	Vector3 _get_closest_point_in_aabb(const AABB &p_aabb, const Vector3 &p_point);
 
 public:
 	EnvironmentVolume();
 	~EnvironmentVolume();
 
-	void _ready() override;
+	void _exit_tree() override;
 	void _process(double delta) override;
 
 	Vector3 get_size() const { return size; }
